@@ -1,6 +1,5 @@
-import React,{Component,PureComponent,useEffect,useCallback,useRef, useState} from 'react';
+import React,{Component,PureComponent,useEffect,useCallback,useRef,useMemo, useState} from 'react';
 import './App.css';
-
 let idSeq=Date.now();
 function Control(props){
     const {addTodo}=props;
@@ -82,6 +81,31 @@ function Todos(props){
     )
 
 }
+
+function WithMemo() {
+    const [count, setCount] = useState(1);
+    const [val, setValue] = useState('');
+    const expensive = useMemo(() => {
+
+        let sum = 0;
+        for (let i = 0; i < count * 100; i++) {
+            sum += i;
+            console.log('sum',sum);
+        }
+        return sum;
+    }, [count]);
+ 
+    return <div>
+          <h4>{count}</h4>
+          <h4>{expensive}</h4>
+        <h4>{count}-{expensive}</h4>
+        {val}
+        <div>
+            <button onClick={() => setCount(count + 1)}>点击</button>
+            <input value={val} onChange={event => setValue(event.target.value)}/>
+        </div>
+    </div>;
+}
 function TodoList() {
     const [todos,setTodos]=useState([]);
 
@@ -110,8 +134,15 @@ function TodoList() {
     <div className='todo-list'>
         <Control addTodo={addTodo}/>
         <Todos removeTodo={removeTodo} toggleTodo={toggleTodo}/>
+        <WithMemo />
     </div>
     );
 
 }
+
+
+
+
+
+
 export default TodoList;
