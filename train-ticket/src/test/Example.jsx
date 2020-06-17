@@ -27,6 +27,22 @@ function List(){
     return <h2>44444444444</h2>
 
 }
+function Counter() {
+    const [counts, setCounts] = useState(0);
+  
+    useEffect(() => {
+      const id = setInterval(() => {
+        setCounts(counts + 1); 
+      }, 1000);
+      return () => {
+          console.log("35")
+          clearInterval(id);
+        }
+    },[counts]);
+  
+    return <h1>{counts}</h1>;
+  }
+
 
 
 export default function Example(){
@@ -47,10 +63,12 @@ export default function Example(){
                 <ul>
                     <li><Link to='/'> 首页</Link></li>
                     <li><Link to='/list/'> 列表</Link></li>
+                    <li><Link to='/Counter/'> 计数器</Link></li>
                 </ul>
 
                 <Route path='/' exact component={Index}/>
                 <Route path='/list/'  component={List}/>
+                <Route path='/Counter/'  component={Counter}/>
             </Router>
         </div>
     )
