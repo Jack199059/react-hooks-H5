@@ -1,22 +1,24 @@
 import React,{Component,PureComponent,useEffect,useCallback,useRef,useMemo,memo, useState} from 'react';
 import './App.css';
-import {createAdd,
-        createRemove,
-        createSet,
-        createToggle
-} from './action.js';
-let idSeq= Date.now();
+import {createAdd, createRemove,createSet,createToggle} from './action.js';
+import reducer from './reducers'
+
+
+
+
 
 function bindActionCreators(actionCreators,dispatch){
+
     const ret={};
     for(let key in actionCreators){
         ret[key] = function(...args){
-            const actionCreator =actionCreators[key];        
+            const actionCreator =actionCreators[key];   
+            console.log("actionCreator222222",actionCreator(...args))     
             const action = actionCreator(...args);
-         
             dispatch(action);
         }
     }
+    console.log("ret",ret)
     return ret;
 }
 
@@ -24,35 +26,21 @@ function bindActionCreators(actionCreators,dispatch){
 
 const Control = memo(function Control(props){
     const {addTodo}=props;
-    console.log("props",props)
     const inputRef=useRef();
     const onSubmit=(e)=>{
         e.preventDefault();   
         const newText = inputRef.current.value.trim();
-        if(newText.length === 0){
-
-            return;
+        if(newText.length === 0){   
+            return; 
         }
-        addTodo({
-            id:++idSeq,
-            text:newText,
-            complete:false,
-        });
-     
+        addTodo(newText);
         inputRef.current.value='';
     }
     return (
         <div className="control">
-            <h1>
-                todos
-            </h1>
+            <h1> todos</h1>
             <form onSubmit={onSubmit}>
-                <input 
-                    type="text"
-                    ref={inputRef}
-                    className="new-todo"
-                    placeholder="What needs to be done?">
-                </input>
+                <input  type="text" ref={inputRef}  className="new-todo" placeholder="What needs to be done?"></input>
             </form>
         </div>
     )
@@ -84,7 +72,6 @@ const TodoItem=memo(function TodoItem(props){
 });
 const Todos =memo(function Todos(props){
     const {todos,removeTodo,toggleTodo}=props;
-    console.log("86",props)
     return (
         <ul>
             {
@@ -105,95 +92,45 @@ const Todos =memo(function Todos(props){
 
   const LS_KEY ='_$-todos_';
 
-  function TodoList() {
-        const [todos,setTodos]=useState([]);
-        const [incrementCount,setIncrementCount]=useState(0);
-    //     const addTodo=useCallback((todo)=>{
-    //          setTodos(todos => [...todos,todo]);
-    //     },[])
-    //     const removeTodo=useCallback((id) => {
-    //         setTodos(todo=>todo.filter(todo=>{
-    //             return todo.id!=id;
-    //         }));       
-    //     },[]);
+  let store={
+      todos:[],
+      incrementCount:0,
+  };
 
-    // const toggleTodo=useCallback((id)=>{
-    //     setTodos(todos=>todos.map(todo=>{
-    //         return todo.id===id
-    //         ?{
-    //             ...todo,
-    //             complete:!todo.complete,
-    //         }
-    //         :todo;
-    //     }))       
-    // },[]);
+  function TodoList() { 
+    const [todos,setTodos]=useState([]);
+    const [incrementCount,setIncrementCount]=useState(0);
 
+    useEffect(()=>{
+        Object.assign(store,{
+            todos,
+            incrementCount,
+        })
 
-
-    function reducer(state,action){
-        const {type,payload}=action;
-        const {todos,incrementCount}=state;
-      console.log("todos",todos)
-      console.log("type",type)
-      console.log("payload",payload)
-        switch(type){
-            case 'set':
-                return {
-                    ...state,
-                    todos:payload,
-                    incrementCount:incrementCount+1
-                };
-            case 'add':
-                return {
-                    ...state,
-                    todos:[...todos,payload],
-                    incrementCount:incrementCount+1
-                }
-            case 'remove':
-                return{
-                    ...state,
-                    todos:todos.filter(todo=>{
-                        return todo.id!=payload;
-                    })
-                }
-            case 'toggle':
-                return{
-                    ...state,
-                    todos:todos.map(todo=>{
-                        return todo.id===payload
-                        ?{
-                            ...todo,
-                            complete:!todo.complete,
-                        }
-                        :todo;
-                })
-            }; 
-    }
-    
-    return state;
-}
-    const dispatch=useCallback((action)=>{
-        console.log("11111111111111111111111111111111111111111")
-       const state={
-           todos,
-           incrementCount,
-       };
+    },[todos,incrementCount])
+ 
+    const dispatch=(action)=>{
+   
        
        const setters={
            todos:setTodos,
            incrementCount:setIncrementCount,
        };
 
-       const newState =reducer(state,action);
+       if('function'===typeof action){
+           action(dispatch,()=>store);
+           return;
+       }
+       const newState =reducer(store,action);
  
        for(let key in newState){
            setters[key](newState[key]);
        }
-    },[todos,incrementCount])
+
+    }
 
     useEffect(()=>{
         const todos = JSON.parse(localStorage.getItem(LS_KEY));
-        // setTodos(todos)
         dispatch(createSet(todos))
     },[])
 
@@ -229,32 +166,3 @@ const Todos =memo(function Todos(props){
   }
 
 export default TodoList;
-
-
-
-// import React,{Component,PureComponent,useEffect,useCallback,useRef,useMemo,memo, useState} from 'react';
- 
- 
-
-// const set = new Set();
- 
-// export default function Callback() {
-//     const [count, setCount] = useState(1);
-//     const [val, setVal] = useState('');
- 
-//     const callback = useCallback(() => {    
-//         console.log("111",count);
-//     }, [count]);
-//     console.log("222",callback);
-//     set.add(callback);
- 
- 
-//     return <div>
-//         <h4>{count}</h4>
-//         <h4>{set.size}</h4>
-//         <div>
-//             <button onClick={() => setCount(count + 1)}>+</button>
-//             <input value={val} onChange={event => setVal(event.target.value)}/>
-//         </div>
-//     </div>;
-// }
